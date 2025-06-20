@@ -12,13 +12,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Fetch Binance Prices and Save to JSON
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Fetch and Format Prices
         run: |
-          curl -s https://fapi.binance.com/fapi/v1/ticker/price > raw.json
-          cat raw.json \
+          TIMESTAMP=$(date -u +"Updated at %Y-%m-%d %H:%M:%S UTC")
+          curl -s https://fapi.binance.com/fapi/v1/ticker/price \
             | jq 'map(select(.symbol | test("BONKUSDT|HBARUSDT|BTCUSDT|OPUSDT|SOLUSDT|SEIUSDT|RNDRUSDT|PEPEUSDT"))) 
             | map({(.symbol): (.price | tonumber)}) 
             | add' > binance-prices.json
+
+          echo "// $TIMESTAMP" >> binance-prices.json
 
       - name: Commit and Push
         run: |
