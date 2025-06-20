@@ -2,17 +2,20 @@ name: Update Binance Prices
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # Every 5 minutes
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
   update-feed:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Fetch Binance Prices
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Fetch Binance Prices and update JSON
         run: |
           curl -s https://fapi.binance.com/fapi/v1/ticker/price \
             | jq 'map(select(.symbol | test("BONKUSDT|HBARUSDT|BTCUSDT|OPUSDT|SOLUSDT|SEIUSDT|RNDRUSDT|PEPEUSDT")) | 
@@ -23,5 +26,5 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add binance-prices.json
-          git commit -m "Auto-update Binance prices"
+          git commit -m "Auto-update Binance prices" || echo "No changes"
           git push
