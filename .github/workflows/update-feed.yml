@@ -12,14 +12,21 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Fetch and Format Binance Prices
+      - name: Fetch and Write Prices
         run: |
-          curl -s https://fapi.binance.com/fapi/v1/ticker/price \
-          | jq '[.[] | select(.symbol | test("BONKUSDT|HBARUSDT|BTCUSDT|OPUSDT|SOLUSDT|SEIUSDT|RNDRUSDT|PEPEUSDT")) | {(.symbol): (.price | tonumber)}] | add' \
-          > binance-prices.json
+          curl -s https://fapi.binance.com/fapi/v1/ticker/price > full.json
+
+          jq 'reduce fromjson[] as $item ({}; 
+              if $item.symbol == "BONKUSDT" or
+                 $item.symbol == "HBARUSDT" or
+                 $item.symbol == "BTCUSDT" or
+                 $item.symbol == "OPUSDT" or
+                 $item.symbol == "SOLUSDT" or
+                 $item.symbol == "SEIUSDT" or
+                 $item.symbol == "RNDRUSDT" or
+                 $item.symbol == "PEPEUSDT" 
+              then . + { ($item.symbol): ($item.price | tonumber) } 
+              else . end)' full.json > binance-prices.json
 
       - name: Commit and Push
         run: |
