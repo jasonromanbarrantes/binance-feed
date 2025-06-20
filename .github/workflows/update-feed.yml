@@ -15,20 +15,16 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Fetch and Format Prices
+      - name: Fetch and Format Binance Prices
         run: |
-          TIMESTAMP=$(date -u +"Updated at %Y-%m-%d %H:%M:%S UTC")
           curl -s https://fapi.binance.com/fapi/v1/ticker/price \
-            | jq 'map(select(.symbol | test("BONKUSDT|HBARUSDT|BTCUSDT|OPUSDT|SOLUSDT|SEIUSDT|RNDRUSDT|PEPEUSDT"))) 
-            | map({(.symbol): (.price | tonumber)}) 
-            | add' > binance-prices.json
-
-          echo "// $TIMESTAMP" >> binance-prices.json
+          | jq '[.[] | select(.symbol | test("BONKUSDT|HBARUSDT|BTCUSDT|OPUSDT|SOLUSDT|SEIUSDT|RNDRUSDT|PEPEUSDT")) | {(.symbol): (.price | tonumber)}] | add' \
+          > binance-prices.json
 
       - name: Commit and Push
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add binance-prices.json
-          git commit -m "Auto-update Binance prices" || echo "No changes"
+          git commit -m "Auto-update Binance prices: $(date -u)" || echo "No changes"
           git push
