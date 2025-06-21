@@ -8,6 +8,7 @@ on:
 jobs:
   update-feed:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -15,12 +16,11 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Fetch Binance Prices and Write JSON
+      - name: Fetch Binance Testnet Prices and Write JSON
         run: |
-          curl -s https://fapi.binance.com/fapi/v1/ticker/price > raw.json
-
+          echo "Fetching prices from Binance Futures Testnet..."
+          curl -s https://testnet.binancefuture.com/fapi/v1/ticker/price > raw.json
           grep '"symbol"' raw.json > /dev/null || { echo "Invalid Binance response"; cat raw.json; exit 1; }
-
           cat raw.json | jq 'map(select(.symbol | test("BONKUSDT|HBARUSDT|BTCUSDT|OPUSDT|SOLUSDT|SEIUSDT|RNDRUSDT|PEPEUSDT")))
             | map({ (.symbol): (.price | tonumber) }) 
             | add' > binance-prices.json
