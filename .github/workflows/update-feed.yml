@@ -5,6 +5,9 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write  # 👈 This allows push access for the default GITHUB_TOKEN
+
 jobs:
   update-feed:
     runs-on: ubuntu-latest
@@ -31,4 +34,4 @@ jobs:
           git config user.email "actions@github.com"
           git add binance-prices.json
           git commit -m "Auto-update Binance prices: $(date -u)" || echo "No changes"
-          git push
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
